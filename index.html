@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedidos | Gasificadora del Golfo</title>
+  <style>
+    :root{--navy:#07366e;--blue:#0866c2;--bg:#eef6fc;--ink:#17334d;--line:#d4e5f3}
+    *{box-sizing:border-box}
+    body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+    header{background:linear-gradient(120deg,#06336f,#0872ce 65%,#50bff1);color:#fff;padding:30px 20px}
+    .wrap{max-width:1150px;margin:auto}
+    h1{margin:0;font-size:clamp(24px,4vw,37px)}
+    header p{margin:7px 0 0;opacity:.95}
+    main{max-width:1150px;margin:22px auto;padding:0 15px}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:17px;padding:21px;margin:18px 0;box-shadow:0 6px 22px #07366e0a}
+    h2{font-size:21px;color:var(--navy);margin:0 0 15px}
+    h3{margin:0 0 7px;font-size:20px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+    .card{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#fff}
+    .visual{height:130px;background:linear-gradient(135deg,#e4f6ff,#bce7ff);display:grid;place-items:center}
+    .visual svg{height:115px}
+    .cardbody{padding:16px}
+    .tag{display:inline-block;background:#e8f5ff;color:#0958a2;border-radius:15px;padding:4px 10px;font-size:12px;font-weight:750;margin-bottom:8px}
+    .price{font-size:23px;color:#075bb0;font-weight:850;margin:9px 0}
+    .muted,.hint{font-size:13px;color:#57738d;line-height:1.5}
+    .field{display:block;font-size:14px;font-weight:650;margin:12px 0 0}
+    .field input,.field select,.field textarea{display:block;width:100%;border:1px solid #bfd4e6;border-radius:9px;padding:11px;font:inherit;color:var(--ink);margin-top:6px;background:#fff}
+    .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid #6fc8f8}
+    button{font:inherit;cursor:pointer;border:0;border-radius:9px;padding:11px 15px;font-weight:750}
+    button:disabled{cursor:not-allowed;opacity:.55}
+    .primary{background:var(--blue);color:#fff}
+    .primary:hover:not(:disabled){background:#034e9b}
+    .secondary{background:#e5f4ff;color:var(--navy)}
+    .card button{width:100%;margin-top:13px}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:13px 0}
+    .row:last-child{border:0}
+    .total{font-size:23px;font-weight:850;color:var(--navy);text-align:right;margin-top:13px}
+    .banner{background:#e7f5ff;border-left:4px solid var(--blue);padding:12px;border-radius:7px;font-size:14px}
+    .banner.error{background:#fff0ed;border-left-color:#b42318;color:#922018}
+    .actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+    footer{text-align:center;color:#58738b;padding:25px}
+    @media(max-width:780px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:560px){.cards,.grid{grid-template-columns:1fr}.panel{padding:15px}.row{align-items:flex-start}}
+    @media print{.card button,#send,#clear{display:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>🔵 Gasificadora del Golfo</h1>
+      <p>Pedidos de Gas LP · Cilindros y tanques estacionarios</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Precio vigente del Gas LP</h2>
+      <div id="priceBanner" class="banner" role="status" aria-live="polite">Cargando precios…</div>
+      <p class="hint">Los importes son estimados. El precio final, la disponibilidad y la cantidad suministrada se confirman con la planta y dependen de la medición de despacho y de la capacidad disponible del recipiente.</p>
+    </section>
+
+    <section class="panel">
+      <h2>1. Elige tu producto y la forma de suministro</h2>
+      <div id="cards" class="cards">
+        <p class="muted">Cargando catálogo…</p>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>2. Resumen del pedido</h2>
+        <div id="cart"><p class="muted">Todavía no agregas productos.</p></div>
+        <div class="total" id="total">Total: $0.00</div>
+        <div class="actions"><button class="secondary" id="clear" type="button">Vaciar pedido</button></div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Datos de entrega</h2>
+        <label class="field">Nombre del cliente *<input id="customer" maxlength="100" autocomplete="name"></label>
+        <label class="field">Teléfono *<input id="phone" type="tel" maxlength="25" autocomplete="tel"></label>
+        <label class="field">Dirección de entrega *<textarea id="address" rows="2" maxlength="300"></textarea></label>
+        <label class="field">Horario preferido (opcional)<input id="deliveryTime" maxlength="100" placeholder="Ej. de 9:00 a 12:00"></label>
+        <label class="field">Indicaciones adicionales<textarea id="notes" rows="2" maxlength="300"></textarea></label>
+        <button class="primary" id="send" type="button" style="width:100%;margin-top:16px" disabled>📲 Enviar pedido por WhatsApp</button>
+        <p class="hint">Se abrirá WhatsApp con los detalles. El cliente debe confirmar el envío del mensaje. El importe final se confirma con la planta.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer>Gasificadora del Golfo · Pedidos de Gas LP</footer>
+
+  <script>
+    'use strict';
+
+    // Verifica este número antes de publicar. Formato: clave de país + número, sin espacios ni "+".
+    const WHATSAPP = '528332089544';
+    const $ = id => document.getElementById(id);
+    const money = n => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(n);
+    const fmt = n => Number(n).toLocaleString('es-MX', {maximumFractionDigits:3});
+    const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+    const defs = [
+      {id:'c20',kg:20,name:'Cilindro portátil 20 kg'},
+      {id:'c30',kg:30,name:'Cilindro portátil 30 kg'},
+      {id:'c45',kg:45,name:'Cilindro portátil 45 kg'},
+      {id:'tank',name:'Tanque estacionario · autotanque'}
+    ];
+    let config = null;
+    let cart = [];
+
+    function validConfig(o) {
+      return o && typeof o === 'object'
+        && ['kg','lt','c20','c30','c45'].every(k =>
+          typeof o[k] === 'number' && Number.isFinite(o[k]) && o[k] > 0 && o[k] < 1000000)
+        && typeof o.date === 'string'
+        && /^\d{4}-\d{2}-\d{2}$/.test(o.date)
+        && !Number.isNaN(Date.parse(o.date + 'T12:00:00'));
+    }
+
+    function svg(d) {
+      if (d.kg) return `<svg viewBox="0 0 150 130" role="img" aria-label="Ilustración de cilindro"><ellipse cx="75" cy="123" rx="38" ry="5" fill="#93c7e7"/><rect x="61" y="8" width="28" height="20" rx="3" fill="#064f9c"/><rect x="47" y="23" width="56" height="96" rx="18" fill="#0975c8"/><path d="M58 33V109" stroke="#74d5ff" stroke-width="7" opacity=".6"/><rect x="54" y="66" width="42" height="26" rx="5" fill="white"/><text x="75" y="84" text-anchor="middle" fill="#07519a" font-size="15" font-weight="bold">${d.kg} kg</text></svg>`;
+      return `<svg viewBox="0 0 150 130" role="img" aria-label="Ilustración de tanque estacionario"><ellipse cx="75" cy="117" rx="65" ry="6" fill="#93c7e7"/><rect x="17" y="47" width="116" height="66" rx="27" fill="#0975c8"/><rect x="29" y="55" width="90" height="49" rx="22" fill="#54bff3"/><path d="M74 47V31h19" stroke="#07519a" stroke-width="7" fill="none"/><rect x="48" y="109" width="15" height="10" fill="#07519a"/><rect x="98" y="109" width="15" height="10" fill="#07519a"/><text x="75" y="85" text-anchor="middle" fill="white" font-size="15" font-weight="bold">GAS LP</text></svg>`;
+    }
+
+    function label(d,m) {
+      return d.kg
+        ? m === 'exchange' ? 'Número de cilindros para intercambio'
+          : m === 'partial-kg' ? 'Kilogramos a recargar'
+          : 'Importe en pesos ($) — conversión a litros'
+        : m === 'litros' ? 'Litros a surtir' : 'Importe solicitado ($)';
+    }
+
+    function calc(d,m,v) {
+      if (d.kg) {
+        if (m === 'exchange')
+          return {amount:v * config[d.id],desc:`${v} cilindro(s) completos a intercambio (se recoge(n) vacío(s))`};
+        if (m === 'partial-kg')
+          return {amount:v * config.kg,desc:`Recarga parcial de ${fmt(v)} kg para cilindro de ${d.kg} kg`};
+        return {amount:v,desc:`Recarga parcial de ${money(v)} ≈ ${fmt(v / config.lt)} litros para cilindro de ${d.kg} kg`};
+      }
+      if (m === 'litros')
+        return {amount:v * config.lt,desc:`Suministro de ${fmt(v)} litros`};
+      return {amount:v,desc:`Suministro de ${money(v)} ≈ ${fmt(v / config.lt)} litros`};
+    }
+
+    function renderCatalog() {
+      const today = new Date().toLocaleDateString('en-CA', {timeZone:'America/Monterrey'});
+      const future = config.date > today;
+      $('priceBanner').textContent = future
+        ? `Los precios publicados tienen fecha futura (${config.date}). No se aceptan pedidos hasta publicar precios vigentes.`
+        : `Precio configurado: ${money(config.kg)}/kg · ${money(config.lt)}/litro · Vigencia desde ${config.date}`;
+      $('priceBanner').classList.toggle('error', future);
+      $('send').disabled = future;
+
+      $('cards').innerHTML = defs.map(d => `
+        <article class="card">
+          <div class="visual">${svg(d)}</div>
+          <div class="cardbody">
+            <span class="tag">${d.kg ? 'CILINDRO PORTÁTIL' : 'TANQUE ESTACIONARIO'}</span>
+            <h3>${d.name}</h3>
+            <div class="price">${money(d.kg ? config[d.id] : config.lt)}
+              <small style="font-size:13px">${d.kg ? '/ intercambio completo' : '/ litro'}</small>
+            </div>
+            <p class="muted">${d.kg
+              ? 'Entregamos un cilindro lleno y recogemos el vacío de la misma capacidad. También puedes solicitar una carga parcial.'
+              : 'Suministro mediante autotanque, por litros o por importe en pesos.'}</p>
+            <label class="field">Tipo de pedido
+              <select id="mode-${d.id}" ${future ? 'disabled' : ''}>
+                ${d.kg
+                  ? '<option value="exchange">Intercambio completo (lleno por vacío)</option><option value="partial-kg">Recarga parcial por kilogramos</option><option value="partial-pesos">Recarga parcial por pesos (se surte en litros)</option>'
+                  : '<option value="litros">Cantidad en litros</option><option value="pesos">Importe en pesos</option>'}
+              </select>
+            </label>
+            <label class="field" id="label-${d.id}">
+              ${d.kg ? 'Número de cilindros para intercambio' : 'Litros a surtir'}
+              <input type="number" id="qty-${d.id}" min="0.01" step="any" inputmode="decimal" placeholder="Captura cantidad" ${future ? 'disabled' : ''}>
+            </label>
+            <div class="hint" id="preview-${d.id}" aria-live="polite">Ingresa una cantidad para ver el total.</div>
+            <button class="primary" type="button" data-add="${d.id}" ${future ? 'disabled' : ''}>+ Agregar al pedido</button>
+          </div>
+        </article>`).join('');
+
+      defs.forEach(d => {
+        $('mode-' + d.id).addEventListener('change', () => updatePreview(d));
+        $('qty-' + d.id).addEventListener('input', () => updatePreview(d));
+      });
+      document.querySelectorAll('[data-add]').forEach(b =>
+        b.addEventListener('click', () => add(b.dataset.add)));
+    }
+
+    function updatePreview(d) {
+      const m = $('mode-' + d.id).value;
+      const v = Number($('qty-' + d.id).value);
+      $('label-' + d.id).firstChild.textContent = label(d,m) + ' ';
+      $('preview-' + d.id).textContent =
+        Number.isFinite(v) && v > 0 && v <= 10000000
+          ? `${calc(d,m,v).desc} · Total estimado: ${money(calc(d,m,v).amount)}`
+          : 'Ingresa una cantidad para ver el total.';
+    }
+
+    function add(id) {
+      if (!config) return;
+      const d = defs.find(x => x.id === id);
+      const m = $('mode-' + id).value;
+      const v = Number($('qty-' + id).value);
+      if (!Number.isFinite(v) || v <= 0 || v > 10000000) {
+        alert('Captura una cantidad válida.'); return;
+      }
+      if (d.kg && m === 'exchange' && !Number.isInteger(v)) {
+        alert('El intercambio requiere un número entero de cilindros.'); return;
+      }
+      if (d.kg && m === 'partial-kg' && v > d.kg) {
+        alert('La recarga en kg no puede superar la capacidad del cilindro.'); return;
+      }
+      const c = calc(d,m,v);
+      if (!Number.isFinite(c.amount) || c.amount > 1000000000) {
+        alert('El importe supera el límite permitido.'); return;
+      }
+      cart.push({
+        name:d.name, mode:m, description:c.desc, amount:round2(c.amount),
+        priceKg:config.kg, priceLt:config.lt,
+        exchangePrice:d.kg ? config[id] : null, validFrom:config.date
+      });
+      $('qty-' + id).value = '';
+      updatePreview(d);
+      renderCart();
+    }
+
+    function renderCart() {
+      const box = $('cart');
+      box.replaceChildren();
+      if (!cart.length) {
+        const p = document.createElement('p');
+        p.className = 'muted';
+        p.textContent = 'Todavía no agregas productos.';
+        box.append(p);
+      }
+      cart.forEach((c,i) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const detail = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = c.name;
+        const desc = document.createElement('div');
+        desc.className = 'muted';
+        desc.textContent = c.description;
+        detail.append(title,desc);
+        const aside = document.createElement('div');
+        aside.style.cssText = 'text-align:right;min-width:100px';
+        const amount = document.createElement('strong');
+        amount.textContent = money(c.amount);
+        const remove = document.createElement('button');
+        remove.className = 'secondary';
+        remove.type = 'button';
+        remove.style.cssText = 'padding:6px 9px;font-size:13px;margin-top:5px';
+        remove.textContent = 'Quitar';
+        remove.addEventListener('click', () => {cart.splice(i,1);renderCart();});
+        aside.append(amount,document.createElement('br'),remove);
+        row.append(detail,aside);
+        box.append(row);
+      });
+      $('total').textContent = 'Total: ' + money(cart.reduce((s,c) => s + c.amount,0));
+    }
+
+    $('clear').addEventListener('click', () => {
+      if (!cart.length || confirm('¿Vaciar el pedido?')) {
+        cart = [];
+        renderCart();
+      }
+    });
+
+    $('send').addEventListener('click', () => {
+      if (!config || !cart.length) {
+        alert('Agrega al menos un producto.'); return;
+      }
+      const name = $('customer').value.trim();
+      const phone = $('phone').value.trim();
+      const address = $('address').value.trim();
+      if (!name || !phone || !address) {
+        alert('Completa nombre, teléfono y dirección.'); return;
+      }
+      const lines = [
+        '*PEDIDO DE GAS LP*', '*Gasificadora del Golfo*', '',
+        `*Cliente:* ${name}`, `*Teléfono:* ${phone}`, `*Dirección:* ${address}`,
+        `*Horario preferido:* ${$('deliveryTime').value.trim() || 'No indicado'}`,
+        `*Indicaciones:* ${$('notes').value.trim() || 'Ninguna'}`,
+        '', '*DETALLE DEL PEDIDO:*',
+        ...cart.map((c,i) =>
+          `${i+1}. *${c.name}*\n   ${c.description}\n   Subtotal estimado: ${money(c.amount)}\n   Precio aplicado: ${
+            c.mode === 'exchange' ? money(c.exchangePrice) + '/cilindro'
+            : c.mode === 'partial-kg' ? money(c.priceKg) + '/kg'
+            : money(c.priceLt) + '/litro'
+          } · Vigencia: ${c.validFrom}`),
+        '', `*TOTAL ESTIMADO: ${money(cart.reduce((s,c) => s+c.amount,0))}*`,
+        '', 'Favor de confirmar disponibilidad, importe final y horario de entrega.'
+      ];
+      window.open('https://wa.me/' + WHATSAPP + '?text=' +
+        encodeURIComponent(lines.join('\n')), '_blank', 'noopener,noreferrer');
+    });
+
+    async function loadPrices() {
+      try {
+        const response = await fetch('./precios.json', {cache:'no-store'});
+        if (!response.ok) throw new Error('No se encontró precios.json');
+        const data = await response.json();
+        if (!validConfig(data)) throw new Error('Los datos de precios.json no son válidos');
+        config = data;
+        renderCatalog();
+      } catch (err) {
+        $('priceBanner').classList.add('error');
+        $('priceBanner').textContent =
+          'No se pudieron cargar los precios. No se pueden realizar pedidos. Revisa que precios.json esté publicado junto a index.html.';
+        $('cards').textContent = 'Catálogo no disponible temporalmente.';
+        $('send').disabled = true;
+        console.error('Error al cargar precios:',err);
+      }
+    }
+
+    renderCart();
+    loadPrices();
+  </script>
+</body>
+</html>
